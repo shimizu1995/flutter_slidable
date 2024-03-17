@@ -55,6 +55,8 @@ class _SlidableGestureListenerState extends State<SlidableGestureListener> {
 
   bool? isWidgetDirectionDrag;
 
+  bool isEdgeDrag = false;
+
   bool get directionIsXAxis {
     return widget.direction == Axis.horizontal;
   }
@@ -79,6 +81,7 @@ class _SlidableGestureListenerState extends State<SlidableGestureListener> {
   void handlePointerDown(PointerDownEvent event) {
     startTime = DateTime.now();
     startPosition = event.localPosition;
+    isEdgeDrag = widget.direction == Axis.horizontal && startPosition.dx < 20;
     lastPosition = startPosition;
     dragExtent = dragExtent.sign *
         overallDragAxisExtent *
@@ -98,7 +101,7 @@ class _SlidableGestureListenerState extends State<SlidableGestureListener> {
       isWidgetDirectionDrag =
           (widget.direction == Axis.horizontal) ? dx > dy : dy > dx;
     }
-    if (!isWidgetDirectionDrag!) {
+    if (isEdgeDrag || !isWidgetDirectionDrag!) {
       return;
     }
 
@@ -115,7 +118,9 @@ class _SlidableGestureListenerState extends State<SlidableGestureListener> {
   }
 
   void handlePointerUp(PointerUpEvent event) {
-    if (isWidgetDirectionDrag == null || !isWidgetDirectionDrag!) {
+    if (isEdgeDrag ||
+        isWidgetDirectionDrag == null ||
+        !isWidgetDirectionDrag!) {
       return;
     }
     endTime = DateTime.now();
