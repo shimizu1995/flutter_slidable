@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_slidable/src/auto_close_behavior.dart';
@@ -6,6 +8,7 @@ import 'package:flutter_slidable/src/notifications_old.dart';
 import 'action_pane_configuration.dart';
 import 'controller.dart';
 import 'dismissal.dart';
+import 'gesture_detector.dart';
 import 'gesture_listener.dart';
 import 'scrolling_behavior.dart';
 
@@ -269,34 +272,44 @@ class _SlidableState extends State<Slidable>
       ],
     );
 
-    return SlidableGestureListener(
-      enabled: widget.enabled,
+    final child = SlidableNotificationSender(
+      tag: widget.groupTag,
       controller: controller,
-      direction: widget.direction,
-      dragStartBehavior: widget.dragStartBehavior,
-      child: SlidableNotificationSender(
-        tag: widget.groupTag,
+      child: SlidableScrollingBehavior(
         controller: controller,
-        child: SlidableScrollingBehavior(
+        closeOnScroll: widget.closeOnScroll,
+        child: SlidableDismissal(
+          axis: flipAxis(widget.direction),
           controller: controller,
-          closeOnScroll: widget.closeOnScroll,
-          child: SlidableDismissal(
-            axis: flipAxis(widget.direction),
-            controller: controller,
-            child: ActionPaneConfiguration(
-              alignment: actionPaneAlignment,
-              direction: widget.direction,
-              isStartActionPane:
-                  controller.actionPaneType.value == ActionPaneType.start,
-              child: _SlidableControllerScope(
-                controller: controller,
-                child: content,
-              ),
+          child: ActionPaneConfiguration(
+            alignment: actionPaneAlignment,
+            direction: widget.direction,
+            isStartActionPane:
+                controller.actionPaneType.value == ActionPaneType.start,
+            child: _SlidableControllerScope(
+              controller: controller,
+              child: content,
             ),
           ),
         ),
       ),
     );
+
+    return Platform.isIOS
+        ? SlidableGestureListener(
+            enabled: widget.enabled,
+            controller: controller,
+            direction: widget.direction,
+            dragStartBehavior: widget.dragStartBehavior,
+            child: child,
+          )
+        : SlidableGestureDetector(
+            enabled: widget.enabled,
+            controller: controller,
+            direction: widget.direction,
+            dragStartBehavior: widget.dragStartBehavior,
+            child: child,
+          );
   }
 }
 
